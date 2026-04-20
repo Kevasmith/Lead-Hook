@@ -1,5 +1,4 @@
-export const dynamic = "force-dynamic"
-
+import { connection } from "next/server"
 import Link from "next/link"
 import { db } from "@/db"
 import { leads } from "@/db/schema"
@@ -24,6 +23,7 @@ async function getLeads() {
 }
 
 export default async function DashboardPage() {
+  await connection()
   const session = await auth.api.getSession({ headers: await headers() })
   const allLeads = await getLeads()
 

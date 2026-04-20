@@ -1,5 +1,4 @@
-export const dynamic = "force-dynamic"
-
+import { connection } from "next/server"
 import { db } from "@/db"
 import { leads, activities } from "@/db/schema"
 import { desc, inArray, eq } from "drizzle-orm"
@@ -13,7 +12,7 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
 }
 
 export default async function HistoryPage() {
-  // All leads that have had some contact
+  await connection()
   const activeLeads = await db
     .select()
     .from(leads)

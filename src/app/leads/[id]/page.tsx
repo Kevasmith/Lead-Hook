@@ -1,5 +1,4 @@
-export const dynamic = "force-dynamic"
-
+import { connection } from "next/server"
 import { db } from "@/db"
 import { leads, activities } from "@/db/schema"
 import { eq, desc } from "drizzle-orm"
@@ -23,6 +22,7 @@ export default async function LeadDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await connection()
   const { id } = await params
 
   const [lead] = await db.select().from(leads).where(eq(leads.id, id)).limit(1)
