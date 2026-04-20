@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { db } from "@/db"
 import { leads, activities } from "@/db/schema"
 import { desc, inArray, eq } from "drizzle-orm"
