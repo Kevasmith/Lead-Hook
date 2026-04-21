@@ -1,3 +1,4 @@
+import { connection } from "next/server"
 import Link from "next/link"
 import SettingsForm from "@/components/SettingsForm"
 import { db } from "@/db"
@@ -7,7 +8,7 @@ async function getConnected() {
   const [row] = await db.select().from(settings).limit(1)
   return {
     twilio: !!(row?.twilioAccountSid && row?.twilioAuthToken && row?.twilioFromNumber),
-    resend: !!row?.resendApiKey,
+    resend: !!(row?.resendApiKey && row?.resendFromEmail),
     openai: !!row?.openaiApiKey,
   }
 }
@@ -21,6 +22,7 @@ function StatusDot({ connected }: { connected: boolean }) {
 }
 
 export default async function SettingsPage() {
+  await connection()
   const connected = await getConnected()
 
   return (
