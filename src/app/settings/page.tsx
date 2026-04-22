@@ -7,14 +7,12 @@ import BookingLinkForm from "@/components/BookingLinkForm"
 import AppShell from "@/components/AppShell"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { getSettings } from "@/lib/settings"
 
-async function getConnected(userId: string | undefined) {
-  const row = await getSettings(userId)
+async function getConnected() {
   return {
-    twilio: !!(row?.twilioAccountSid && row?.twilioAuthToken && row?.twilioFromNumber),
-    resend:  !!(row?.resendApiKey && row?.resendFromEmail),
-    openai:  !!row?.openaiApiKey,
+    twilio: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER),
+    resend:  !!(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL),
+    openai:  !!process.env.OPENAI_API_KEY,
   }
 }
 
@@ -51,7 +49,7 @@ export default async function SettingsPage() {
   await connection()
   const session = await auth.api.getSession({ headers: await headers() })
   const userId = session?.user?.id
-  const connected = await getConnected(userId)
+  const connected = await getConnected()
   const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
   const webhookUrl = userId ? `${baseUrl}/api/webhooks?userId=${userId}` : `${baseUrl}/api/webhooks`
   const twilioWebhookUrl = `${baseUrl}/api/webhooks/sms`

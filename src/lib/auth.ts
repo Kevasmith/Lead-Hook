@@ -19,9 +19,10 @@ export const auth = betterAuth({
         <p style="color:#999;font-size:12px;">If you didn't request a password reset, you can safely ignore this email.</p>
       `
       try {
-        await sendEmail(user.email, "Reset your Lead Hook password", html)
-      } catch {
-        console.warn("[password-reset] Resend not configured — reset URL:", url)
+        await sendEmail(user.email, "Reset your Lead Hook password", html, user.id)
+      } catch (err) {
+        console.error("[password-reset] Failed to send email:", err)
+        console.warn("[password-reset] Reset URL:", url)
       }
     },
   },
@@ -34,10 +35,10 @@ export const auth = betterAuth({
         <p style="color:#999;font-size:12px;">If you didn't sign up for Lead Hook, you can ignore this email.</p>
       `
       try {
-        await sendEmail(user.email, "Verify your Lead Hook email", html)
-      } catch {
-        // Log URL to console so dev environments without Resend still work
-        console.warn("[email-verification] Resend not configured — verify URL:", url)
+        await sendEmail(user.email, "Verify your Lead Hook email", html, user.id)
+      } catch (err) {
+        console.error("[email-verification] Failed to send email:", err)
+        console.warn("[email-verification] Verify URL:", url)
       }
     },
   },

@@ -90,12 +90,12 @@ export default function SendEmailForm({
 
   return (
     <div className="space-y-3">
-      {/* Intent selector + AI button */}
-      <div className="flex items-center gap-2">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={intent}
           onChange={(e) => setIntent(e.target.value as Intent)}
-          className="text-sm rounded-lg border border-gray-200 px-2 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="text-sm rounded-lg border border-gray-200 px-2.5 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
           {INTENT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -105,7 +105,7 @@ export default function SendEmailForm({
           type="button"
           onClick={handleSuggest}
           disabled={suggesting}
-          className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 flex items-center gap-1.5"
+          className="text-sm px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
         >
           {suggesting ? "Generating…" : "✦ Suggest"}
         </button>
@@ -122,7 +122,7 @@ export default function SendEmailForm({
           <button
             type="button"
             onClick={() => setMessage((m) => m ? `${m}\n\nBook a time here: ${bookingLink}` : `Book a time here: ${bookingLink}`)}
-            className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5"
+            className="text-sm px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5 whitespace-nowrap"
             title={bookingLink}
           >
             📅 Book
@@ -130,29 +130,31 @@ export default function SendEmailForm({
         )}
       </div>
 
-      <form onSubmit={handleSend} className="space-y-2">
+      <form onSubmit={handleSend} className="space-y-2.5">
         <input
           type="text"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Subject"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
         />
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder={`Email body to ${leadName}…`}
-          rows={4}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+          rows={5}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
         />
-        <p className="text-xs text-gray-400">Sending to {leadEmail}</p>
-        <button
-          type="submit"
-          disabled={loading || !subject.trim() || !message.trim()}
-          className="w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-        >
-          {loading ? "Sending…" : "Send Email"}
-        </button>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-gray-400">Sending to {leadEmail}</p>
+          <button
+            type="submit"
+            disabled={loading || !subject.trim() || !message.trim()}
+            className="px-5 py-2 rounded-lg bg-gray-900 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50 whitespace-nowrap"
+          >
+            {loading ? "Sending…" : "Send Email"}
+          </button>
+        </div>
       </form>
     </div>
   )

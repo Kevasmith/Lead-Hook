@@ -75,13 +75,13 @@ export default function SendSmsForm({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Intent selector + AI button */}
-      <div className="flex items-center gap-2">
+    <form onSubmit={handleSend} className="space-y-3">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={intent}
           onChange={(e) => setIntent(e.target.value as Intent)}
-          className="text-sm rounded-lg border border-gray-200 px-2 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="text-sm rounded-lg border border-gray-200 px-2.5 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
           {INTENT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -91,7 +91,7 @@ export default function SendSmsForm({
           type="button"
           onClick={handleSuggest}
           disabled={suggesting}
-          className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 flex items-center gap-1.5"
+          className="text-sm px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
         >
           {suggesting ? "Generating…" : "✦ Suggest"}
         </button>
@@ -105,7 +105,7 @@ export default function SendSmsForm({
           <button
             type="button"
             onClick={() => setMessage((m) => m ? `${m}\n${bookingLink}` : bookingLink)}
-            className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5"
+            className="text-sm px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5 whitespace-nowrap"
             title={bookingLink}
           >
             📅 Book
@@ -113,25 +113,27 @@ export default function SendSmsForm({
         )}
       </div>
 
-      {/* Message input */}
-      <form onSubmit={handleSend} className="flex gap-2">
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder={`Message to ${leadName}…`}
-          maxLength={160}
-          rows={2}
-          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
-        />
+      {/* Textarea */}
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder={`Message to ${leadName}…`}
+        maxLength={160}
+        rows={3}
+        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+      />
+
+      {/* Footer row */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-gray-400">{message.length}/160 characters</p>
         <button
           type="submit"
           disabled={loading || !message.trim()}
-          className="self-end px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-50"
+          className="px-5 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-50 whitespace-nowrap"
         >
-          {loading ? "…" : "Send"}
+          {loading ? "Sending…" : "Send SMS"}
         </button>
-      </form>
-      <p className="text-xs text-gray-400">{message.length}/160 characters</p>
-    </div>
+      </div>
+    </form>
   )
 }
