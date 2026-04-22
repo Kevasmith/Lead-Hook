@@ -46,7 +46,8 @@ export default async function DashboardPage() {
   await connection()
   const session = await auth.api.getSession({ headers: await headers() })
 
-  const settingsRow = await getSettings(session?.user?.id)
+  if (!session) redirect("/sign-in")
+  const settingsRow = await getSettings(session.user.id)
   if (!settingsRow?.onboardingCompleted) redirect("/onboarding")
   const logoUrl = settingsRow?.logoUrl ?? null
 

@@ -9,11 +9,12 @@ type WorkspaceType = "business" | "personal"
 const TOTAL_STEPS = 2
 
 async function saveStep(data: Record<string, unknown>) {
-  await fetch("/api/onboarding", {
+  const res = await fetch("/api/onboarding", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
+  if (!res.ok) throw new Error(`Save failed: ${res.status}`)
 }
 
 function ProgressBar({ step }: { step: number }) {
@@ -77,11 +78,9 @@ export default function OnboardingWizard({ webhookUrl }: { webhookUrl: string })
     try {
       await saveStep({ complete: true })
       toast.success("You're all set — welcome to Lead Hook!")
-      router.push("/")
-      router.refresh()
+      window.location.href = "/"
     } catch {
       toast.error("Something went wrong. Please try again.")
-    } finally {
       setSaving(false)
     }
   }

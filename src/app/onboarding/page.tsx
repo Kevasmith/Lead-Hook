@@ -8,7 +8,8 @@ import OnboardingWizard from "@/components/OnboardingWizard"
 export default async function OnboardingPage() {
   await connection()
   const session = await auth.api.getSession({ headers: await headers() })
-  const userId = session?.user?.id
+  if (!session) redirect("/sign-in")
+  const userId = session.user.id
 
   const row = await getSettings(userId)
   if (row?.onboardingCompleted) redirect("/")
