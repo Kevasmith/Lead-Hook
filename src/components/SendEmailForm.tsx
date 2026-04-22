@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import TemplatePicker from "./TemplatePicker"
+import { useBookingLink } from "@/hooks/useBookingLink"
 
 type Intent = "initial" | "follow_up" | "reply" | "close"
 
@@ -17,10 +19,12 @@ export default function SendEmailForm({
   leadId,
   leadName,
   leadEmail,
+  leadSource = "",
 }: {
   leadId: string
   leadName: string
   leadEmail: string
+  leadSource?: string
 }) {
   const router = useRouter()
   const [subject, setSubject] = useState("")
@@ -28,6 +32,7 @@ export default function SendEmailForm({
   const [intent, setIntent] = useState<Intent>("follow_up")
   const [loading, setLoading] = useState(false)
   const [suggesting, setSuggesting] = useState(false)
+  const bookingLink = useBookingLink()
 
   async function handleSuggest() {
     setSuggesting(true)
@@ -104,6 +109,25 @@ export default function SendEmailForm({
         >
           {suggesting ? "Generating…" : "✦ Suggest"}
         </button>
+        <TemplatePicker
+          channel="email"
+          leadName={leadName}
+          leadSource={leadSource}
+          onSelect={(body, subject) => {
+            if (subject) setSubject(subject)
+            setMessage(body)
+          }}
+        />
+        {bookingLink && (
+          <button
+            type="button"
+            onClick={() => setMessage((m) => m ? `${m}\n\nBook a time here: ${bookingLink}` : `Book a time here: ${bookingLink}`)}
+            className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5"
+            title={bookingLink}
+          >
+            📅 Book
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSend} className="space-y-2">

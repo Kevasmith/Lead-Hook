@@ -26,7 +26,12 @@ export default function AddLeadButton() {
         body: JSON.stringify(form),
       })
       if (!res.ok) throw new Error("Failed to create lead")
-      toast.success(`Lead added for ${form.name}`)
+      const data = await res.json()
+      toast.success(
+        data.smsSent
+          ? `${form.name} added — intro SMS sent`
+          : `${form.name} added — SMS failed, check Twilio settings`
+      )
       setOpen(false)
       setForm({ name: "", phone: "", email: "", source: "Facebook Ads" })
       router.refresh()

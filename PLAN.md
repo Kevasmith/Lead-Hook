@@ -113,6 +113,43 @@
 
 ---
 
+---
+
+## Phase 6 — Onboarding + CRM Integrations
+
+### DB Schema
+- [x] Add `onboarding_completed` boolean to `settings` table
+- [x] Add `workspace_type` (business/personal) to `settings` table
+- [x] Add `business_name` to `settings` table
+- [x] Generate + apply migration
+
+### Onboarding Wizard
+- [x] `POST /api/onboarding` — save onboarding state (type, name, creds, complete flag)
+- [x] `OnboardingWizard` component — 4-step flow:
+  - Step 1: Business or Personal workspace selection
+  - Step 2: Business/agent profile (name, type)
+  - Step 3: Integration credentials (Twilio, Resend, OpenAI)
+  - Step 4: Your webhook URL + per-CRM connection guide
+- [x] `/onboarding` page
+- [x] Dashboard redirects new users to `/onboarding` if not completed
+
+### CRM Integrations (Webhook Normalization)
+- [x] Facebook Ads (existing)
+- [x] Follow Up Boss — `{name, email[].value, phones[].value}`
+- [x] kvCORE — `{data.contact.full_name, email, mobile}`
+- [x] HubSpot — `{properties.firstname/lastname/email/phone.value}`
+- [x] Salesforce — `{Name/FirstName+LastName, Email, Phone}`
+- [x] BoomTown — `{lead_name, lead_email, lead_phone}`
+- [x] Sierra Interactive — `{first_name+last_name, email, phone}`
+- [x] Zapier (generic) — same as current
+- [x] `/api/webhooks` updated with `X-CRM-Source` header detection + payload sniffing
+
+### Settings Page
+- [x] Webhook URL display with copy-to-clipboard button
+- [x] Per-CRM integration guide (collapse/expand per platform)
+
+---
+
 ## Backlog (Post-MVP)
 
 - [ ] Multi-agent routing — assign leads to specific agents

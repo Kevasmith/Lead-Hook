@@ -3,6 +3,8 @@ import { db } from "@/db"
 import { leads, activities } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import twilio from "twilio"
+import { sendReplyAlert } from "@/lib/alerts"
+import { getSettings } from "@/lib/settings"
 
 function twimlResponse(message?: string) {
   const body = message
@@ -51,7 +53,14 @@ export async function POST(req: NextRequest) {
       .update(leads)
       .set({ status: "replied", lastContactedAt: new Date() })
       .where(eq(leads.id, lead.id))
+
+    sendReplyAlert(lead, messageBody ?? "")
   }
 
-  return twimlResponse("Got it! An agent will be in touch with you shortly.")
+  const s = await getSettings(lead.userId)
+  const ack = s?.bookingLink
+    ? `Got it! An agent will be in touch shortly. Book a time here: ${s.bookingLink}`
+    : "Got it! An agent will be in touch with you shortly."
+
+  return twimlResponse(ack)
 }

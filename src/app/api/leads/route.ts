@@ -3,7 +3,9 @@ import { db } from "@/db"
 import { leads, activities } from "@/db/schema"
 import { sendSms } from "@/lib/twilio"
 import { generateMessage } from "@/lib/openai"
-import { asc, sql } from "drizzle-orm"
+import { getSessionUserId } from "@/lib/session"
+import { scoreLeadQuality, SPAM_THRESHOLD } from "@/lib/lead-quality"
+import { asc, eq, sql } from "drizzle-orm"
 
 const STATUS_PRIORITY = sql`CASE status
   WHEN 'replied' THEN 1
@@ -14,7 +16,14 @@ const STATUS_PRIORITY = sql`CASE status
 END`
 
 export async function GET() {
-  const rows = await db.select().from(leads).orderBy(asc(STATUS_PRIORITY))
+  const userId = await getSessionUserId()
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const rows = await db
+    .select()
+    .from(leads)
+    .where(eq(leads.userId, userId))
+    .orderBy(asc(STATUS_PRIORITY))
   return NextResponse.json(rows)
 }
 
@@ -26,7 +35,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
 
-  const [lead] = await db.insert(leads).values({ name, phone, email, source }).returning()
+  // Session userId takes priority; webhooks pass userId in body
+  const sessionUserId = await getSessionUserId()
+  const userId: string | null = sessionUserId ?? (typeof body.userId === "string" ? body.userId : null)
+
+  // Quality / spam check
+  const qualityScore = scoreLeadQuality({ name, phone, email, source, message: body.message })
+  const isSpam = qualityScore < SPAM_THRESHOLD
+
+  const [lead] = await db
+    .insert(leads)
+    .values({ userId, name, phone, email, source, qualityScore, isSpam })
+    .returning()
+
+  // Skip outreach for spam leads
+  if (isSpam) {
+    return NextResponse.json({ ...lead, smsSent: false, spam: true }, { status: 201 })
+  }
 
   const message = await generateMessage({
     leadName: name,

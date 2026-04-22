@@ -1,59 +1,88 @@
 import { connection } from "next/server"
-import Link from "next/link"
-import SettingsForm from "@/components/SettingsForm"
-import { db } from "@/db"
-import { settings } from "@/db/schema"
+import WebhookSection from "@/components/WebhookSection"
+import CopyButton from "@/components/CopyButton"
+import LogoForm from "@/components/LogoForm"
+import AlertPrefsForm from "@/components/AlertPrefsForm"
+import BookingLinkForm from "@/components/BookingLinkForm"
+import AppShell from "@/components/AppShell"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { getSettings } from "@/lib/settings"
 
-async function getConnected() {
-  const [row] = await db.select().from(settings).limit(1)
+async function getConnected(userId: string | undefined) {
+  const row = await getSettings(userId)
   return {
     twilio: !!(row?.twilioAccountSid && row?.twilioAuthToken && row?.twilioFromNumber),
-    resend: !!(row?.resendApiKey && row?.resendFromEmail),
-    openai: !!row?.openaiApiKey,
+    resend:  !!(row?.resendApiKey && row?.resendFromEmail),
+    openai:  !!row?.openaiApiKey,
   }
 }
 
 function StatusDot({ connected }: { connected: boolean }) {
   return (
-    <span
-      className={`inline-block w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-400"}`}
-    />
+    <span className={`inline-block w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-400"}`} />
+  )
+}
+
+function TwilioWebhookCard({ url }: { url: string }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <div>
+        <h2 className="text-sm font-semibold text-gray-800 mb-0.5">Twilio SMS Webhook</h2>
+        <p className="text-xs text-gray-400">
+          Paste this into your Twilio phone number settings so inbound replies are captured.
+        </p>
+      </div>
+      <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+        <code className="flex-1 text-sm text-gray-800 break-all">{url}</code>
+        <CopyButton text={url} />
+      </div>
+      <ol className="list-decimal list-inside space-y-1.5 text-sm text-gray-600">
+        <li>Go to <span className="font-medium">Twilio Console → Phone Numbers → Active Numbers</span></li>
+        <li>Click your Lead Hook number</li>
+        <li>Under <span className="font-medium">Messaging Configuration</span>, set <span className="font-medium">A message comes in</span> → Webhook → <code className="text-xs bg-gray-100 px-1 rounded">HTTP POST</code></li>
+        <li>Paste the URL above and save</li>
+      </ol>
+    </div>
   )
 }
 
 export default async function SettingsPage() {
   await connection()
-  const connected = await getConnected()
+  const session = await auth.api.getSession({ headers: await headers() })
+  const userId = session?.user?.id
+  const connected = await getConnected(userId)
+  const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
+  const webhookUrl = userId ? `${baseUrl}/api/webhooks?userId=${userId}` : `${baseUrl}/api/webhooks`
+  const twilioWebhookUrl = `${baseUrl}/api/webhooks/sms`
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-10 w-full bg-white min-h-screen">
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 mb-6 block">
-        ← Back to dashboard
-      </Link>
-
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
-      <p className="text-sm text-gray-500 mb-8">Configure your integrations</p>
-
-      {/* Status overview */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { label: "Twilio (SMS)", key: "twilio" as const },
-          { label: "Resend (Email)", key: "resend" as const },
-          { label: "OpenAI", key: "openai" as const },
-        ].map(({ label, key }) => (
-          <div key={key} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <StatusDot connected={connected[key]} />
-              <span className="text-xs font-semibold text-gray-600">{label}</span>
-            </div>
-            <p className="text-xs text-gray-400">
-              {connected[key] ? "Connected" : "Not configured"}
-            </p>
+    <AppShell email={session?.user.email} name={session?.user.name} imageUrl={session?.user.image} emailVerified={session?.user.emailVerified} userId={userId}>
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            {[
+              { label: "SMS",   key: "twilio" as const },
+              { label: "Email", key: "resend"  as const },
+              { label: "AI",    key: "openai"  as const },
+            ].map(({ label, key }) => (
+              <span key={key} className="flex items-center gap-1.5">
+                <StatusDot connected={connected[key]} />
+                {label}
+              </span>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
 
-      <SettingsForm />
-    </main>
+        <div className="space-y-4">
+          <LogoForm />
+          <BookingLinkForm />
+          <AlertPrefsForm />
+          <TwilioWebhookCard url={twilioWebhookUrl} />
+          <WebhookSection webhookUrl={webhookUrl} />
+        </div>
+      </div>
+    </AppShell>
   )
 }

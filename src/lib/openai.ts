@@ -21,8 +21,8 @@ const INTENT_INSTRUCTIONS: Record<PromptContext["intent"], string> = {
     "The agent wants to wrap up this conversation. Write a polite closing message leaving the door open for future contact.",
 }
 
-export async function generateMessage(ctx: PromptContext): Promise<string> {
-  const apiKey = await getOpenAiKey()
+export async function generateMessage(ctx: PromptContext, userId?: string | null): Promise<string> {
+  const apiKey = await getOpenAiKey(userId)
   if (!apiKey) return ""
 
   const openai = new OpenAI({ apiKey })

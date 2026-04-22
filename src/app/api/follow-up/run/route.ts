@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/db"
 import { leads, activities } from "@/db/schema"
-import { eq, inArray, and } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import { sendSms } from "@/lib/twilio"
 import { sendEmail } from "@/lib/resend"
 import { generateMessage } from "@/lib/openai"
-import { shouldSendFollowUp } from "@/lib/follow-up-scheduler"
+import { shouldSendFollowUp, getSequenceStepIndex } from "@/lib/follow-up-scheduler"
 
 // Day 0 → SMS, Day 1 → SMS, Day 3 → Email, Day 5 → SMS (final nudge)
 const SEQUENCE: Array<{ channel: "sms" | "email"; intent: "initial" | "follow_up" | "close" }> = [
@@ -32,13 +32,7 @@ export async function POST(req: NextRequest) {
     const shouldSend = shouldSendFollowUp(lead.createdAt, lead.lastContactedAt, lead.status)
     if (!shouldSend) { results.skipped++; continue }
 
-    // Only count outbound messages to determine sequence position
-    const outboundActivities = await db
-      .select()
-      .from(activities)
-      .where(and(eq(activities.leadId, lead.id), eq(activities.direction, "outbound")))
-
-    const step = SEQUENCE[Math.min(outboundActivities.length, SEQUENCE.length - 1)]
+    const step = SEQUENCE[getSequenceStepIndex(lead.createdAt)]
 
     // Generate AI message for this step
     const message = await generateMessage({

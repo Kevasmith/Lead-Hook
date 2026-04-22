@@ -1,4 +1,4 @@
-const SEQUENCE_DAYS = [0, 1, 3, 5]
+export const SEQUENCE_DAYS = [0, 1, 3, 5]
 
 export function getFollowUpDates(startDate: Date): Date[] {
   return SEQUENCE_DAYS.map((day) => {
@@ -8,13 +8,20 @@ export function getFollowUpDates(startDate: Date): Date[] {
   })
 }
 
+export function getSequenceStepIndex(createdAt: Date, now = new Date()): number {
+  const daysSince = Math.floor(
+    (now.setHours(0, 0, 0, 0) - new Date(createdAt).setHours(0, 0, 0, 0)) / 86_400_000
+  )
+  const idx = SEQUENCE_DAYS.indexOf(daysSince)
+  return idx !== -1 ? idx : SEQUENCE_DAYS.length - 1
+}
+
 export function shouldSendFollowUp(
   startDate: Date,
   lastContactedAt: Date | null,
   status: string,
   now = new Date()
 ): boolean {
-  // Never send automated follow-ups to leads who replied or are closed
   if (status === "replied" || status === "closed") return false
 
   const dates = getFollowUpDates(startDate)

@@ -17,12 +17,17 @@ export default function SignUpPage() {
     e.preventDefault()
     setError("")
     setLoading(true)
-    const { error: err } = await signUp.email({ name, email, password })
+    const { error: err } = await signUp.email({
+      name,
+      email,
+      password,
+      callbackURL: "/",
+    })
     setLoading(false)
     if (err) {
       setError(err.message ?? "Could not create account")
     } else {
-      router.push("/")
+      router.push("/verify-email")
     }
   }
 

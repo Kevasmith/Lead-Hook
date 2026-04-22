@@ -6,16 +6,16 @@ import Link from "next/link"
 import { toast } from "sonner"
 import type { Lead } from "@/db/schema"
 
-const STATUS_BADGE: Record<Lead["status"], { label: string; className: string }> = {
-  replied: { label: "Hot", className: "bg-red-100 text-red-700" },
-  new: { label: "New", className: "bg-yellow-100 text-yellow-700" },
-  contacted: { label: "Contacted", className: "bg-blue-100 text-blue-700" },
-  closed: { label: "Closed", className: "bg-gray-100 text-gray-400" },
+const STATUS_BADGE: Record<Lead["status"], { label: string; icon: string; className: string }> = {
+  replied:   { label: "Hot",    icon: "🔥", className: "bg-red-50 text-red-600 ring-1 ring-red-200" },
+  new:       { label: "Warm",   icon: "☀️", className: "bg-orange-50 text-orange-600 ring-1 ring-orange-200" },
+  contacted: { label: "Cold",   icon: "❄️", className: "bg-blue-50 text-blue-500 ring-1 ring-blue-200" },
+  closed:    { label: "Closed", icon: "✓",  className: "bg-gray-50 text-gray-400 ring-1 ring-gray-200" },
 }
 
 const SUGGESTED_ACTION: Record<Lead["status"], string> = {
   replied: "Call now",
-  new: "Follow up",
+  new: "Send intro",
   contacted: "Follow up",
   closed: "—",
 }
@@ -76,8 +76,9 @@ export default function LeadList({ leads: initialLeads }: { leads: Lead[] }) {
 
             <div className="flex items-center gap-2 shrink-0">
               <span
-                className={`text-xs font-semibold px-2 py-1 rounded-full ${badge.className}`}
+                className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${badge.className}`}
               >
+                <span>{badge.icon}</span>
                 {badge.label}
               </span>
               <span className="text-xs text-gray-400 hidden sm:block">

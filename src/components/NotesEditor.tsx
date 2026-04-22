@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { toast } from "sonner"
 
 export default function NotesEditor({
@@ -13,9 +13,24 @@ export default function NotesEditor({
   const [notes, setNotes] = useState(initialNotes)
   const [saving, setSaving] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    function handleUnload() {
+      if (pendingRef.current !== null) {
+        navigator.sendBeacon(
+          `/api/leads/${leadId}`,
+          new Blob([JSON.stringify({ notes: pendingRef.current })], { type: "application/json" })
+        )
+      }
+    }
+    window.addEventListener("beforeunload", handleUnload)
+    return () => window.removeEventListener("beforeunload", handleUnload)
+  }, [leadId])
 
   function handleChange(value: string) {
     setNotes(value)
+    pendingRef.current = value
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => save(value), 1000)
   }
@@ -28,6 +43,7 @@ export default function NotesEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes: value }),
       })
+      pendingRef.current = null
     } catch {
       toast.error("Failed to save notes")
     } finally {

@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import TemplatePicker from "./TemplatePicker"
+import { useBookingLink } from "@/hooks/useBookingLink"
 
 type Intent = "initial" | "follow_up" | "reply" | "close"
 
@@ -16,15 +18,18 @@ const INTENT_OPTIONS: { value: Intent; label: string }[] = [
 export default function SendSmsForm({
   leadId,
   leadName,
+  leadSource = "",
 }: {
   leadId: string
   leadName: string
+  leadSource?: string
 }) {
   const router = useRouter()
   const [message, setMessage] = useState("")
   const [intent, setIntent] = useState<Intent>("follow_up")
   const [loading, setLoading] = useState(false)
   const [suggesting, setSuggesting] = useState(false)
+  const bookingLink = useBookingLink()
 
   async function handleSuggest() {
     setSuggesting(true)
@@ -90,6 +95,22 @@ export default function SendSmsForm({
         >
           {suggesting ? "Generating…" : "✦ Suggest"}
         </button>
+        <TemplatePicker
+          channel="sms"
+          leadName={leadName}
+          leadSource={leadSource}
+          onSelect={(body) => setMessage(body)}
+        />
+        {bookingLink && (
+          <button
+            type="button"
+            onClick={() => setMessage((m) => m ? `${m}\n${bookingLink}` : bookingLink)}
+            className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5"
+            title={bookingLink}
+          >
+            📅 Book
+          </button>
+        )}
       </div>
 
       {/* Message input */}
